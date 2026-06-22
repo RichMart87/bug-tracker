@@ -48,18 +48,29 @@ pipeline {
                 }
             }
             steps {
-                dir('bugtracker-frontend') {
-                    sh '''
-                       npm ci
-                       npm test
-                    '''
-                }
-            }
-            post {
-                always {
-                    junit 'bugtracker-frontend/test-results.xml'
-                }
-            }
+    dir('bugtracker-frontend') {
+        sh '''
+           npm ci
+           npm test
+           ls -R coverage
+           mkdir -p reports
+           mv coverage/lcov-report reports/coverage
+        '''
+    }
+}
+post {
+    always {
+        junit 'bugtracker-frontend/test-results.xml'
+        publishHTML(target: [
+            reportName: 'Frontend Coverage Report',
+            reportDir: 'bugtracker-frontend/reports/coverage',
+            reportFiles: 'index.html',
+            keepAll: true,
+            allowMissing: false,
+            alwaysLinkToLastBuild: true
+        ])
+    }
+}
         }
     }
 }
