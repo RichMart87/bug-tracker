@@ -115,13 +115,15 @@ pipeline {
                         alwaysLinkToLastBuild: true
                     ])
                 }
+            }
         }
+    }
     }
     post{
         always {
             cleanWs()
         }
     }
-}
-}
+
+
         
