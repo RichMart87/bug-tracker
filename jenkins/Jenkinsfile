@@ -85,8 +85,27 @@ pipeline {
             }
             steps {
                 sh 'docker compose up -d'
+            }
         }
-        }
+
+        stage('API Tests')
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+                    reuseNode true
+                    args '-u 0 --network=host'
+                }
+            }
+        steps {
+            dir('tests-api') {
+            sh '''
+            npm ci
+            npx playwright install --with-deps
+            npx wait-on http://localhost:8080/api/health -t 30000
+            npx playwright test
+            '''
+    }
+}
     }
     post{
         always {
