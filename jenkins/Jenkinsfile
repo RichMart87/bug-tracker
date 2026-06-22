@@ -96,14 +96,12 @@ pipeline {
                     args '-u 0 --network=host'
                 }
             }
-        steps {
-            dir('tests-api') {
-            sh '''
-            npm ci
-            npx playwright install --with-deps
-            npx wait-on http://localhost:8080/api/health -t 30000
-            npx playwright test
-            '''
+            steps {
+                dir('tests-api') {
+                sh 'npm ci'
+                sh 'npx playwright install --with-deps'
+                sh 'npx wait-on http://localhost:8080/api/health -t 30000'
+                sh 'npx playwright test'
     }
 }
     }
