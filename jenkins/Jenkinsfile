@@ -98,12 +98,12 @@ pipeline {
             }
             steps {
                 dir('tests-api') {
-                sh 'npm ci'
-                sh 'npx playwright install --with-deps'
-                sh 'npx wait-on http://localhost:8080/api/health -t 30000'
-                sh 'npx playwright test'
-    }
-}
+                    sh 'npx wait-port http://localhost:8080/api/health -t 30000'
+                    sh 'npm ci'
+                    sh 'npx playwright test'
+                }
+            }
+        }
     }
     post{
         always {
