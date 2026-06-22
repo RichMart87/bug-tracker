@@ -52,9 +52,8 @@ pipeline {
         sh '''
            npm ci
            npm test
-           ls -R coverage
            mkdir -p reports
-           mv coverage/lcov-report reports/coverage
+           mv coverage reports/coverage
         '''
     }
 }
