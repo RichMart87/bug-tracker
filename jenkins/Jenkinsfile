@@ -147,6 +147,33 @@ pipeline {
                 }
             }
         }
+
+        stage('Performance Tests') {
+            agent {
+                docker {
+                    image 'justb4/k6:0.45.0'
+                    reuseNode true
+                    args '-u 0 --network=host'
+                }
+            }
+            steps {
+                dir('tests-performance') {
+                    sh 'k6 run --out json=results.json script.js'
+                }
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        reportName: 'Performance Test Report',
+                        reportDir: 'tests-performance',
+                        reportFiles: 'results.json',
+                        keepAll: true,
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true
+                    ])
+                }
+            }
+        }
     }
     post{
         always {
