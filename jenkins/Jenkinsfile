@@ -165,8 +165,8 @@ pipeline {
                 always {
                     publishHTML(target: [
                         reportName: 'Performance Test Report',
-                        reportDir: 'tests-performance',
-                        reportFiles: 'results.json',
+                        reportDir: 'tests-perf',
+                        reportFiles: 'perf-results.html',
                         keepAll: true,
                         allowMissing: false,
                         alwaysLinkToLastBuild: true
