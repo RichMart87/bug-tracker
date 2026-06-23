@@ -151,9 +151,9 @@ pipeline {
         stage('Performance Tests') {
             agent {
                 docker {
-                    image 'justb4/k6:0.45.0'
+                    image 'grafana/k6:latest'
                     reuseNode true
-                    args '-u 0 --network=host'
+                    args '--network=host -u root --entrypoint=""'
                 }
             }
             steps {
