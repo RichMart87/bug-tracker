@@ -1,25 +1,22 @@
-name : CI
+name: CI
 
 on:
   push:
-    branches: .
-        -main
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-    unit_tests_backend:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-
-            -name: Set up Go
-            uses: actions/setup-go@v4
-            with:
-                go-version: "1.21"
-                cache-dependency-path: bugtracker-backend/go.sum
-     
-
-            -name: Execute Backend Unit Tests
-            working-directory: ./bugtracker-backend
-            run: |
-                go test -v ./...
+  unit_tests_backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+          cache-dependency-path: bugtracker-backend/go.sum
+      - name: Execute Backend Unit Tests
+        working-directory: ./bugtracker-backend
+        run: |
+          go test -v ./...
