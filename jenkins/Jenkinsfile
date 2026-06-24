@@ -1,0 +1,185 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Execute Unit Tests in Parallel') {
+            parallel {
+                stage('Unit Tests - Backend') {
+                    agent {
+                        docker {
+                            image 'snakee/golang-junit:1.21'
+                            reuseNode true
+                            args '-e HOME=/tmp -e GOCACHE=/tmp/.cache/go-build -e GOPATH=/tmp/go'
+                        }
+                    }
+                    steps {
+                        dir('bugtracker-backend') {
+                            sh '''
+                            go test -v ./... 2>&1 | go-junit-report > test-results.xml
+
+                            # Generate coverage report
+                            go test -coverprofile=coverage.out -covermode=atomic ./...
+                            go tool cover -html=coverage.out -o coverage.html
+
+                            mkdir -p reports
+                            mv coverage.html reports/
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            junit 'bugtracker-backend/test-results.xml'
+                            publishHTML(target: [
+                                reportName: 'Backend Coverage Report',
+                                reportDir: 'bugtracker-backend/reports',
+                                reportFiles: 'coverage.html',
+                                keepAll: true,
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true
+                            ])
+                        }
+                    }
+                }
+
+                stage('Unit Tests - Frontend') {
+                    agent {
+                        docker {
+                            image 'node:20-alpine'
+                            reuseNode true
+                            args '-e HOME=/tmp -e NODE_ENV=development'
+                        }
+                    }
+                    steps {
+                        dir('bugtracker-frontend') {
+                            sh '''
+                               npm ci
+                               npm test
+                               mkdir -p reports
+                               mv coverage reports/coverage
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            junit 'bugtracker-frontend/test-results.xml'
+                            publishHTML(target: [
+                                reportName: 'Frontend Coverage Report',
+                                reportDir: 'bugtracker-frontend/reports/coverage',
+                                reportFiles: 'index.html',
+                                keepAll: true,
+                                allowMissing: false,
+                                alwaysLinkToLastBuild: true
+                            ])
+                        }
+                    }
+                }
+            }
+        }
+        stage('Launch Application') {
+            agent {
+                docker {
+                    image 'docker:27.5.1'
+                    reuseNode true
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u 0'
+                }
+            }
+            steps {
+                sh 'docker compose up -d'
+            }
+        }
+
+        stage('API Tests'){
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+                    reuseNode true
+                    args '-u 0 --network=host'
+                }
+            }
+            steps {
+                dir('tests-api') {
+                    sh 'npx wait-port http://localhost:8080/api/health -t 30000'
+                    sh 'npm ci'
+                    sh 'npx playwright test'
+                }
+            }
+            post {
+                always {
+                    junit 'tests-api/test-results/results.xml'
+                    publishHTML(target: [
+                        reportName: 'API Test Report',
+                        reportDir: 'tests-api/playwright-report',
+                        reportFiles: 'index.html',
+                        keepAll: true,
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true
+                    ])
+                }
+            }
+        }
+
+
+        stage('E2E Tests') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.61.0-jammy'
+                    reuseNode true
+                    args '-u 0 --network=host'
+                }
+            }
+            steps {
+                dir('tests-e2e') {
+                    sh 'npm ci'
+                    sh 'npx playwright test'
+                }
+            }
+            post {
+                always {
+                    junit 'tests-e2e/test-results/results.xml'
+                    publishHTML(target: [
+                        reportName: 'E2E Test Report',
+                        reportDir: 'tests-e2e/playwright-report',
+                        reportFiles: 'index.html',
+                        keepAll: true,
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true
+                    ])
+                }
+            }
+        }
+
+        stage('Performance Tests') {
+            agent {
+                docker {
+                    image 'grafana/k6:latest'
+                    reuseNode true
+                    args '--network=host -u root --entrypoint=""'
+                }
+            }
+            steps {
+                dir('tests-perf') {
+                    sh 'k6 run script.js'
+                }
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        reportName: 'Performance Test Report',
+                        reportDir: 'tests-perf',
+                        reportFiles: 'perf-results.html',
+                        keepAll: true,
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true
+                    ])
+                }
+            }
+        }
+    }
+    post{
+        always {
+            cleanWs()
+        }
+    }
+}
+
+        
