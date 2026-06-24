@@ -4,16 +4,16 @@ on:
   push:
     branches:
       - main
-    pull_request:
-      branches:
-        - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   unit_tests_backend:
     runs-on: ubuntu-latest
     outputs:
-      coverage: ${{ steps.tests-backend.outputs.report }}
+      coverage: ${{ steps.test-backend.outputs.report }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Go
@@ -80,7 +80,7 @@ jobs:
             path: ./bugtracker-frontend/test-results.xml
             reporter: jest-junit
 
-     create-coverage-comment:
+  create-coverage-comment:
         if: github.event_name == 'pull_request'
         needs: [unit_tests_backend]
         runs-on: ubuntu-latest
