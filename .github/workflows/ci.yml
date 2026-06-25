@@ -112,4 +112,15 @@ jobs:
                   ## Frontend Test Coverage Report
                   ```
                   ${{ steps.test-frontend.outputs.report }}
-                  ```
+
+  api-tests:
+          needs: [unit_tests_backend, unit_tests_frontend]
+          runs-on: ubuntu-latest
+
+          steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+            - name: Launch Application
+              run: |
+                docker-compose up --build -d
+                npx wait-port http://localhost:8080/api/health -t 30000
