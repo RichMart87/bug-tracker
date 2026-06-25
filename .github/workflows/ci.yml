@@ -128,7 +128,8 @@ jobs:
           npx wait-port http://localhost:8080/api/health -t 30000
       - name: Run API tests
         run: |
-          echo "TODO: Add API tests here"
+          docker compose exec -T backend go test -v ./tests/api/...
+          
       - name: Tear down containers
         if: always()
         run: |
