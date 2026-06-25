@@ -114,13 +114,22 @@ jobs:
                   ${{ steps.test-frontend.outputs.report }}
 
   api-tests:
-          needs: [unit_tests_backend, unit_tests_frontend]
-          runs-on: ubuntu-latest
+    needs: [unit_tests_backend, unit_tests_frontend]
+    runs-on: ubuntu-latest
 
-          steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
-            - name: Launch Application
-              run: |
-                docker-compose up --build -d
-                npx wait-port http://localhost:8080/api/health -t 30000
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Launch Application
+        run: |
+          docker compose up --build -d
+      - name: Wait for API
+        run: |
+          npx wait-port http://localhost:8080/api/health -t 30000
+      - name: Run API tests
+        run: |
+          echo "TODO: Add API tests here"
+      - name: Tear down containers
+        if: always()
+        run: |
+          docker compose down
