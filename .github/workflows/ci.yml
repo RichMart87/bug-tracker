@@ -123,12 +123,16 @@ jobs:
       - name: Launch Application
         run: |
           docker compose up --build -d
+          
       - name: Wait for API
         run: |
           npx wait-port http://localhost:8080/api/health -t 30000
+
       - name: Run API tests
+        working-directory: ./tests-api
         run: |
-          docker compose exec -T backend go test -v ./tests/api/...
+          npm ci
+          npx playwright test
           
       - name: Tear down containers
         if: always()
