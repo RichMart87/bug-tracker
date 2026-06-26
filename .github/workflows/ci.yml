@@ -144,10 +144,10 @@ jobs:
       - name: Setup K6
         uses: grafana/setup-k6-action@v1
 
-      - name: Run K6 Performance Tests
+      - name: Run Performance Tests
         uses: grafana/run-k6-action@v1
         with:
-          path: tests-performance.js
+          path: tests-perf/script.js
           flags: --out json=summary.json
 
       - name: Tear down containers
