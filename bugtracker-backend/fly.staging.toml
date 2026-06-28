@@ -1,0 +1,29 @@
+# fly.toml app configuration file generated for bugtracker-backend-richmart87 on 2026-06-26T23:34:07-07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'bugtracker-backend-staging-richmart87'
+primary_region = 'lax'
+
+[build]
+
+[mounts]
+  source="bugtracker_data"
+  destination="/data"
+
+[env]
+  DB_PATH = "/data/bugs.db"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '256mb'
+  cpus = 1
+  memory_mb = 256
